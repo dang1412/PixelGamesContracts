@@ -1,0 +1,8 @@
+{
+  "base-sepolia": {
+    "PixelERC20": {
+      "address": "0xf875AA3EE0Cc060C5D06813dBD5c78DeC553411A",
+      "startBlock": 30601048
+    }
+  }
+}
