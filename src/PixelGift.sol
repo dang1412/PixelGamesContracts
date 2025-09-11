@@ -1,53 +1,65 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { EIP712 } from "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
 import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
-// 0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512
+import { PixelToken } from "./PixelToken.sol";
 
-contract PixelERC20 is ERC20, Ownable, EIP712 {
+contract PixelGift is Ownable, EIP712 {
   // EIP712 typehash for permit (optional, for demonstration)
   bytes32 private constant _PERMIT_TYPEHASH =
     keccak256("Permit(address user,uint256 deadline)");
+  // ERC20 token contract
+  PixelToken public pixelToken;
   // signer, to verify human
   address public signer;
 
   uint16 public maxTokenPerBox = 100;
-  uint16 public minTokenPerBox = 10;
+  uint16 public minTokenPerBox = 20;
   uint16 public maxBoxPerDay = 1000;
   uint16 public maxBoxAppear = 20;
-  uint16 public boxesClaimedToday;
+  uint16 public minBoxAppear = 10;
+  uint16 public totalBoxesClaimedToday;
   // current date
-  uint32 public currentGiftDay;
+  uint32 public currentBoxDay;
   // positions that currently have boxes, position is from 0 to 9999
   mapping (uint16 => bool) public boxes;
   uint16[] public activeBoxPositions;
   // address's last box taken timestamp
-  mapping (address => uint) public lastBoxTaken;
+
+  struct UserBoxInfo {
+    uint32 lastBoxTaken;
+    uint32 lastBoxDay;
+    uint8 boxesTakenToday;
+  }
+
+  mapping (address => UserBoxInfo) public userInfos;
   // min time between two box taken
-  uint256 public boxCooldown = 5 minutes;
+  uint32 public baseBoxCooldown = 5 minutes;
 
   event BoxAdded(uint16 position);
   event BoxClaimed(address user, uint16 position, uint16 token);
 
   constructor()
-    ERC20("Pixel Gift Box Token", "PixelGift")
-    EIP712("Pixel Gift Token", "1")
+    EIP712("PixelGames Token Gift Box", "1")
     Ownable(msg.sender)
   {
-    currentGiftDay = uint32(block.timestamp / 1 days);
+    currentBoxDay = uint32(block.timestamp / 1 days);
     _fillBoxes();
+  }
+
+  function setPixelToken(address tokenAddress) external onlyOwner {
+    pixelToken = PixelToken(tokenAddress);
   }
 
   function setSigner(address _signer) external onlyOwner {
     signer = _signer;
   }
 
-  function updateBoxCooldown(uint256 _boxCooldown) external onlyOwner {
-    boxCooldown = _boxCooldown;
+  function updateBaseBoxCooldown(uint32 _boxCooldown) external onlyOwner {
+    baseBoxCooldown = _boxCooldown;
   }
 
   function setMaxBoxPerDay(uint16 _maxBoxPerDay) external onlyOwner {
@@ -68,37 +80,77 @@ contract PixelERC20 is ERC20, Ownable, EIP712 {
     return activeBoxPositions;
   }
 
+  function calculateCooldownFinshed(address user) public view returns (uint256) {
+    UserBoxInfo memory info = userInfos[user];
+    uint32 today = uint32(block.timestamp / 1 days);
+
+    if (today > info.lastBoxDay) {
+      // first pick of the day
+      return 0;
+    }
+
+    uint32 cooldown = 0;
+    if (info.lastBoxDay == today && info.boxesTakenToday > 0) {
+      // taken box today
+      cooldown = uint32(baseBoxCooldown * 2 ** (info.boxesTakenToday - 1));
+    }
+
+    // compare with time till next day
+    uint32 timeTillNextDay = uint32((1 days) - (block.timestamp % 1 days));
+
+    if (cooldown > timeTillNextDay) {
+      cooldown = timeTillNextDay;
+    }
+
+    return uint256(info.lastBoxTaken + cooldown);
+  }
+
   /**
    * 
    * @param position claim box at this position
    * @param deadline timestamp that this claim is valid until
    * @param signature signature from the signer to verify this is a valid claim
    */
-  function claimBox(uint16 position, uint256 deadline, bytes calldata signature) public returns (uint256) {
+  function claimBox(uint16 position, uint256 deadline, bytes calldata signature) public {
     require(boxes[position], "No box at this position");
-    require(block.timestamp >= lastBoxTaken[msg.sender] + boxCooldown, "Box cooldown not passed");
+
+    // check cooldown
+    uint256 coolDownTime = calculateCooldownFinshed(msg.sender);
+    require(block.timestamp >= coolDownTime, "Box cooldown not passed");
 
     uint32 today = uint32(block.timestamp / 1 days);
-    require(today >= currentGiftDay, "All boxes for today claimed");
-    if (today > currentGiftDay) {
-      // shift to next day, all boxes claimed today reset to 0
+    require(today >= currentBoxDay, "All boxes for today claimed");
+    if (today > currentBoxDay) {
+      // first pick of the day
+      // shift to today day, all boxes claimed today reset to 0
       // (not all boxes claimed on currentGiftDay)
-      currentGiftDay = today;
-      boxesClaimedToday = 0;
+      currentBoxDay = today;
+      totalBoxesClaimedToday = 0;
     }
 
     if (signer != address(0)) {
       _validateClaim(msg.sender, deadline, signature);
     }
 
-    boxesClaimedToday += 1;
-    if (boxesClaimedToday == maxBoxPerDay) {
+    // update user info
+    UserBoxInfo storage info = userInfos[msg.sender];
+    if (info.lastBoxDay < today) {
+      // first pick of the day
+      info.boxesTakenToday = 1;
+      info.lastBoxDay = today;
+    } else {
+      info.boxesTakenToday += 1;
+    }
+    info.lastBoxTaken = uint32(block.timestamp);
+
+    // check totalBoxesClaimedToday
+    totalBoxesClaimedToday += 1;
+    if (totalBoxesClaimedToday == maxBoxPerDay) {
       // all boxes for today claimed, move to next day
-      currentGiftDay += 1;
-      boxesClaimedToday = 0;
+      currentBoxDay += 1;
+      totalBoxesClaimedToday = 0;
     }
 
-    lastBoxTaken[msg.sender] = block.timestamp;
     boxes[position] = false;
     // remove from activeBoxPositions
     for (uint i = 0; i < activeBoxPositions.length; i++) {
@@ -109,11 +161,19 @@ contract PixelERC20 is ERC20, Ownable, EIP712 {
       }
     }
     uint16 token = uint16(_randomWithin(minTokenPerBox, maxTokenPerBox, position));
-    _mint(msg.sender, token * 10 ** decimals());
+    uint256 amount = uint256(token) * 1e18;
+    pixelToken.mint(msg.sender, amount); // assuming 18 decimals
     emit BoxClaimed(msg.sender, position, token);
-    _fillBoxes();
 
-    return token;
+    if (activeBoxPositions.length < minBoxAppear) {
+      // ensure at least minBoxAppear boxes on the field
+      _fillBoxes();
+    } else {
+      // 50% chance to fill boxes
+      // if (_randomWithin(0, 100, position) < 50) {
+      //   _fillBoxes();
+      // }
+    }
   }
 
   function _fillBoxes() internal {

@@ -7,16 +7,14 @@ import { console } from "forge-std/console.sol";
 import { PixelToken } from "../src/PixelToken.sol";
 import { PixelGift } from "../src/PixelGift.sol";
 
-PixelToken constant token = PixelToken(0xAD645091Ac62A9DF5A3a4Fa6046B451c49209C76);
-
 contract Deploy is Script {
     function run() external {
+        // vm.createSelectFork("base-sepolia");
         vm.startBroadcast();
+        PixelToken token = new PixelToken();
         PixelGift gift = new PixelGift();
-        gift.setPixelToken(address(token));
-
-        // update token minter
         token.setMinter(address(gift));
+        gift.setPixelToken(address(token));
 
         console.log("Token address:", address(token));
         console.log("Gift address:", address(gift));

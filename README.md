@@ -80,13 +80,31 @@ forge script script/PixelGift.s.sol:Deploy \
   --rpc-url $BASE_SEPOLIA_URL \
   --private-key $TESTNET_OWNER_PK \
   --broadcast \
-  --verify -vvvv \
+  -vvvv \
   --etherscan-api-key $ETHERSCAN_API_KEY
 
-forge script script/PixelGift.s.sol:Deploy \
-  --rpc-url $BASE_SEPOLIA_URL \
-  --private-key $TESTNET_OWNER_PK \
-  --broadcast \
-  --verify -vvvv \
-  --etherscan-api-key $ETHERSCAN_API_KEY
+# Verify after deployed
+
+Token address: 0xAD645091Ac62A9DF5A3a4Fa6046B451c49209C76
+Gift address: 0xb985231d3C7867b5d1330F5d589508FD2e053B60
+
+forge verify-contract 0xAD645091Ac62A9DF5A3a4Fa6046B451c49209C76 src/PixelToken.sol:PixelToken \
+  -e $ETHERSCAN_API_KEY \
+  -r $BASE_SEPOLIA_URL
+
+forge verify-contract 0x502f500dcD5Fe41fB08aC0d6EA27B9c1C7c3743C src/PixelGift.sol:PixelGift \
+  -e $ETHERSCAN_API_KEY \
+  -r $BASE_SEPOLIA_URL
+```
+
+### Test
+
+```sh
+forge test PixelGift -vvvv
+```
+
+### Subgraph
+
+```sh
+graph init --from-contract 0xf875AA3EE0Cc060C5D06813dBD5c78DeC553411A --network base
 ```
