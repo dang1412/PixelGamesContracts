@@ -4,6 +4,13 @@ const ws_1 = require("ws");
 const viem_1 = require("viem");
 const chains_1 = require("viem/chains");
 const encode_1 = require("./utils/encode");
+function getClientIp(req, ws) {
+    const forwardedFor = req.headers["x-forwarded-for"];
+    const ip = Array.isArray(forwardedFor)
+        ? forwardedFor[0]
+        : forwardedFor?.split(",")[0].trim();
+    return ip || ws._socket.remoteAddress?.replace(/^::ffff:/, "") || "unknown";
+}
 // ==== CONFIG ====
 // const CONTRACT_ADDRESS = "0x4f25aF152764737E6DDFb8cBEA7be66a553B70F4"
 const CONTRACT_ADDRESS = "0x3A10d4F908A1d37EDF9597C0e856E8eb8a1D23a5";
@@ -36,12 +43,13 @@ const client = (0, viem_1.createPublicClient)({
 // ==== WEBSOCKET SERVER ====
 const wss = new ws_1.WebSocketServer({ port: 8080 });
 let sockets = [];
-wss.on("connection", (ws) => {
+wss.on("connection", (ws, req) => {
     sockets.push(ws);
-    console.log("Client connected, total:", sockets.length);
+    const ip = getClientIp(req, ws);
+    console.log(`Client connected ${ip}, total:`, sockets.length, new Date());
     ws.on("close", () => {
         sockets = sockets.filter((s) => s !== ws);
-        console.log("Client disconnected, total:", sockets.length);
+        console.log(`Client disconnected ${ip}, total:`, sockets.length, new Date());
     });
 });
 // // ==== LISTEN TO CONTRACT EVENTS ====
@@ -50,7 +58,7 @@ const rs = client.watchContractEvent({
     abi: EVENT_ABI,
     eventName: "BoxClaimed",
     onLogs: (logs) => {
-        console.log("Events received:", logs.length);
+        console.log("Events received:", logs.length, new Date());
         for (const log of logs) {
             console.log(`- User: ${log.args.user}, Position: ${log.args.position}, Token: ${log.args.token}`);
         }

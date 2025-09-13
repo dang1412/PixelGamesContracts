@@ -3,6 +3,16 @@ import { createPublicClient, webSocket, parseAbiItem } from "viem"
 import { baseSepolia } from "viem/chains"
 
 import { BoxClaimedArgs, encodeBoxClaimedEvents } from "./utils/encode"
+import { IncomingMessage } from "http";
+
+function getClientIp(req: IncomingMessage, ws: WebSocket): string {
+  const forwardedFor = req.headers["x-forwarded-for"];
+  const ip = Array.isArray(forwardedFor)
+    ? forwardedFor[0]
+    : forwardedFor?.split(",")[0].trim();
+
+  return ip || (ws as any)._socket.remoteAddress?.replace(/^::ffff:/, "") || "unknown";
+}
 
 // ==== CONFIG ====
 // const CONTRACT_ADDRESS = "0x4f25aF152764737E6DDFb8cBEA7be66a553B70F4"
@@ -41,13 +51,14 @@ const client = createPublicClient({
 const wss = new WebSocketServer({ port: 8080 })
 let sockets: WebSocket[] = []
 
-wss.on("connection", (ws: WebSocket) => {
+wss.on("connection", (ws: WebSocket, req) => {
   sockets.push(ws)
-  console.log("Client connected, total:", sockets.length)
+  const ip = getClientIp(req, ws)
+  console.log(`Client connected ${ip}, total:`, sockets.length, new Date())
 
   ws.on("close", () => {
     sockets = sockets.filter((s) => s !== ws)
-    console.log("Client disconnected, total:", sockets.length)
+    console.log(`Client disconnected ${ip}, total:`, sockets.length, new Date())
   })
 })
 
@@ -57,7 +68,7 @@ const rs = client.watchContractEvent({
   abi: EVENT_ABI,
   eventName: "BoxClaimed",
   onLogs: (logs) => {
-    console.log("Events received:", logs.length)
+    console.log("Events received:", logs.length, new Date())
     for (const log of logs) {
       console.log(`- User: ${log.args.user}, Position: ${log.args.position}, Token: ${log.args.token}`)
     }
