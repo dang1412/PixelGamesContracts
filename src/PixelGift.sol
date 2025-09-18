@@ -161,8 +161,10 @@ contract PixelGift is Ownable, EIP712 {
       }
     }
     uint16 token = uint16(_randomWithin(minTokenPerBox, maxTokenPerBox, position));
-    uint256 amount = uint256(token) * 1e18;
-    pixelToken.mint(msg.sender, amount); // assuming 18 decimals
+    uint256 amount = uint256(token) * 1e18; // assuming 18 decimals
+    uint256 reserveAmount = amount / 10;
+    pixelToken.mint(msg.sender, amount); // amount go to user
+    pixelToken.mint(address(this), reserveAmount); // 10% go to treasury
     emit BoxClaimed(msg.sender, position, token);
 
     if (activeBoxPositions.length < minBoxAppear) {
@@ -174,6 +176,10 @@ contract PixelGift is Ownable, EIP712 {
       //   _fillBoxes();
       // }
     }
+  }
+
+  function withdraw(uint256 amount) public onlyOwner {
+    pixelToken.transfer(owner(), amount);
   }
 
   function _fillBoxes() internal {

@@ -9,6 +9,8 @@ import { PixelGift } from "../src/PixelGift.sol";
 
 address constant user = address(0x123);
 
+error OwnableUnauthorizedAccount(address account);
+
 contract GiftTest is Test {
     PixelToken public token;
     PixelGift public gift;
@@ -27,15 +29,53 @@ contract GiftTest is Test {
         assertEq(address(gift), address(token.minter()));
     }
 
-    function test_ClaimBox() public {
+    function test_FirstBox() public view {
         uint16 pos = gift.activeBoxPositions(0);
         console.log("Box position:", pos);
         assertEq(gift.boxes(pos), true);
+    }
 
+    function test_ClaimBox() public {
+        uint256 amount = _claim(user);
+        // Kiểm tra balance sau khi claim
+        assertGt(amount, 0);
+    }
+
+    function test_Treasury() public {
+        uint256 amount = _claim(user);
+        // Treasury got 10%
+        assert(amount / 10 == token.balanceOf(address(gift)));
+    }
+
+    function test_Withdraw() public {
+        uint256 amount = _claim(user);
+        uint256 treasuryAmount = amount / 10;
+        // withdraw 50%
+        gift.withdraw(treasuryAmount / 2);
+
+        assert(token.balanceOf(address(gift)) == treasuryAmount / 2);
+        assert(token.balanceOf(address(this)) == treasuryAmount / 2);
+    }
+
+    function test_WithdrawFail() public {
+        uint256 amount = _claim(user);
+        uint256 treasuryAmount = amount / 10;
+        // user try to withdraw 50% treasury
         vm.prank(user);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                OwnableUnauthorizedAccount.selector,
+                user
+            )
+        );
+        gift.withdraw(treasuryAmount / 2);
+    }
+
+    function _claim(address _user) private returns (uint256) {
+        uint16 pos = gift.activeBoxPositions(0);
+        vm.prank(_user);
         gift.claimBox(pos, 0, '0x');
 
-        // Kiểm tra balance sau khi mint
-        assertGt(token.balanceOf(user), 0);
+        return token.balanceOf(_user);
     }
 }

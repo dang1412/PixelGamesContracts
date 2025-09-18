@@ -76,7 +76,16 @@ source .env
 # To deploy and verify our contract
 forge script --chain sepolia script/Counter.s.sol:CounterScript --rpc-url $SEPOLIA_RPC_URL --broadcast --verify -vvvv --interactives 1
 
+# deploy Gift only
 forge script script/PixelGift.s.sol:Deploy \
+  --rpc-url $BASE_SEPOLIA_URL \
+  --private-key $TESTNET_OWNER_PK \
+  --broadcast \
+  -vvvv \
+  --etherscan-api-key $ETHERSCAN_API_KEY
+
+# deploy gift with new token
+forge script script/PixelGiftWithToken.s.sol:Deploy \
   --rpc-url $BASE_SEPOLIA_URL \
   --private-key $TESTNET_OWNER_PK \
   --broadcast \
@@ -85,14 +94,18 @@ forge script script/PixelGift.s.sol:Deploy \
 
 # Verify after deployed
 
-Token address: 0xAD645091Ac62A9DF5A3a4Fa6046B451c49209C76
-Gift address: 0xb985231d3C7867b5d1330F5d589508FD2e053B60
+# Token address: 0xAD645091Ac62A9DF5A3a4Fa6046B451c49209C76
+# Gift address: 0xb985231d3C7867b5d1330F5d589508FD2e053B60
 
-forge verify-contract 0xAD645091Ac62A9DF5A3a4Fa6046B451c49209C76 src/PixelToken.sol:PixelToken \
+# 2025/09/18
+# Token address: 0x29994B9CfF1BF05b527a206407c29aAE7525D5A0
+# Gift address: 0x93f8ab400B201B062eCb794E49d20b643F3D391E
+
+forge verify-contract 0x29994B9CfF1BF05b527a206407c29aAE7525D5A0 src/PixelToken.sol:PixelToken \
   -e $ETHERSCAN_API_KEY \
   -r $BASE_SEPOLIA_URL
 
-forge verify-contract 0x502f500dcD5Fe41fB08aC0d6EA27B9c1C7c3743C src/PixelGift.sol:PixelGift \
+forge verify-contract 0x93f8ab400B201B062eCb794E49d20b643F3D391E src/PixelGift.sol:PixelGift \
   -e $ETHERSCAN_API_KEY \
   -r $BASE_SEPOLIA_URL
 ```
