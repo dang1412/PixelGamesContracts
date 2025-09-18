@@ -108,6 +108,30 @@ forge verify-contract 0x29994B9CfF1BF05b527a206407c29aAE7525D5A0 src/PixelToken.
 forge verify-contract 0x93f8ab400B201B062eCb794E49d20b643F3D391E src/PixelGift.sol:PixelGift \
   -e $ETHERSCAN_API_KEY \
   -r $BASE_SEPOLIA_URL
+
+
+# ------------------------------------------------ #
+# ------------------ MAINNET --------------------- #
+# ------------------------------------------------ #
+
+forge script script/PixelGiftWithToken.s.sol:Deploy \
+  --rpc-url $BASE_MAINNET_URL \
+  --private-key $MAINNET_OWNER_PK \
+  --broadcast \
+  -vvvv \
+  --etherscan-api-key $ETHERSCAN_API_KEY
+
+# 2025/09/19
+# Token address: 0xaE6F09Fb34Ab7cfc04b31e2fFfbC6d796a2D5126
+# Gift address: 0x83514843b0A11398e98e99873908c1d6f1C1CaeA
+
+forge verify-contract 0xaE6F09Fb34Ab7cfc04b31e2fFfbC6d796a2D5126 src/PixelToken.sol:PixelToken \
+  -e $ETHERSCAN_API_KEY \
+  -r $BASE_MAINNET_URL
+
+forge verify-contract 0x83514843b0A11398e98e99873908c1d6f1C1CaeA src/PixelGift.sol:PixelGift \
+  -e $ETHERSCAN_API_KEY \
+  -r $BASE_MAINNET_URL
 ```
 
 ### Test
