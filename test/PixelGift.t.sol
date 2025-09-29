@@ -3,11 +3,18 @@ pragma solidity ^0.8.13;
 
 import "forge-std/Test.sol";
 import { console } from "forge-std/console.sol";
+import "forge-std/console2.sol";
 
 import { PixelToken } from "../src/PixelToken.sol";
 import { PixelGift } from "../src/PixelGift.sol";
 
 address constant user = address(0x123);
+address constant user2 = address(0x123);
+
+// Test EIP712
+bytes32 constant _PERMIT_TYPEHASH = keccak256("Permit(address user,uint256 deadline)");
+address constant signer = address(0x56B637DD6eccc852501D9450a9da395044A826A8);
+uint256 constant signerPK = 0xa5ef7fc4cf98c043f7f3339f9a9c6bcfca010761815f7208e8a66a6e2a6bc1e9;
 
 error OwnableUnauthorizedAccount(address account);
 
@@ -16,6 +23,7 @@ contract GiftTest is Test {
     PixelGift public gift;
 
     function setUp() public {
+        vm.createSelectFork(vm.envString("BASE_RPC_URL"));
         token = new PixelToken();
         gift = new PixelGift();
         token.setMinter(address(gift));
@@ -77,5 +85,28 @@ contract GiftTest is Test {
         gift.claimBox(pos, 0, '0x');
 
         return token.balanceOf(_user);
+    }
+
+    function test_ClaimWithSignature() public {
+        gift.setSigner(signer);
+        uint16 pos = gift.activeBoxPositions(0);
+        uint256 deadline = block.timestamp + 1 hours;
+        console.log("Deadline:", deadline);
+
+        vm.startPrank(user2);
+        bytes memory signature = _getSignature(user2, deadline);
+        gift.claimBox(pos, deadline, signature);
+        assertGt(token.balanceOf(user2), 0);
+    }
+
+    function _getSignature(address _user, uint256 deadline) internal view returns (bytes memory) {
+        bytes32 structHash = keccak256(abi.encode(_PERMIT_TYPEHASH, _user, deadline));
+        bytes32 digest = gift.hashTypedDataV4(structHash);
+
+        console.log("Test Digest:");
+        console2.logBytes32(digest);
+
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPK, digest);
+        return abi.encodePacked(r, s, v);
     }
 }

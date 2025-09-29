@@ -7,6 +7,9 @@ import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
 import { PixelToken } from "./PixelToken.sol";
 
+// import "forge-std/console.sol";
+// import "forge-std/console2.sol";
+
 contract PixelGift is Ownable, EIP712 {
   // EIP712 typehash for permit (optional, for demonstration)
   bytes32 private constant _PERMIT_TYPEHASH =
@@ -210,7 +213,15 @@ contract PixelGift is Ownable, EIP712 {
     if (block.timestamp > deadline) revert ClaimExpired();
     bytes32 structHash = keccak256(abi.encode(_PERMIT_TYPEHASH, user, deadline));
     bytes32 digest = _hashTypedDataV4(structHash);
+
+    // console.log("Digest:");
+    // console2.logBytes32(digest);
+
     address recovered = ECDSA.recover(digest, signature);
     if (recovered != signer) revert InvalidClaimSignature();
+  }
+
+  function hashTypedDataV4(bytes32 structHash) external view returns (bytes32) {
+    return _hashTypedDataV4(structHash);
   }
 }
