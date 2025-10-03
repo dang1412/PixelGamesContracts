@@ -1,0 +1,39 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = __importDefault(require("express"));
+const cors_1 = __importDefault(require("cors"));
+const turnstile_1 = require("./turnstile");
+const app = (0, express_1.default)();
+const port = 8080;
+// Middleware to parse JSON
+app.use(express_1.default.json());
+// Allow frontend (localhost:3000) to access backend
+app.use((0, cors_1.default)({
+    origin: "http://localhost:3000", // or "*" for all
+    methods: ["GET", "POST"], // allowed methods
+    //   credentials: true                // if you need cookies/auth headers
+}));
+// Simple route
+app.get("/", (req, res) => {
+    res.send("Hello from Express + TypeScript!");
+});
+// Example POST route
+app.post("/verifyHuman", async (req, res) => {
+    //   res.json({ youSent: req.body });
+    const { address, token } = req.body; // read the string sent by client
+    console.log("Received string:", address);
+    const validate = await (0, turnstile_1.validateTurnstile)(token, req.ip);
+    if (validate.success) {
+        const signData = await (0, turnstile_1.generateSignature)(address);
+        res.json({ success: true, signData });
+    }
+    else {
+        res.json({ success: false, error: 'Human validation failed', signData: null });
+    }
+});
+app.listen(port, () => {
+    console.log(`Server running at http://localhost:${port}`);
+});
