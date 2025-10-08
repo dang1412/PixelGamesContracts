@@ -1,4 +1,4 @@
-import { createWalletClient, http, parseAbi, parseUnits } from 'viem'
+import { Address, createWalletClient, http, parseAbi, parseUnits } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
 import { base } from 'viem/chains'
 import dotenv from 'dotenv'
@@ -21,15 +21,24 @@ const client = createWalletClient({
 // 3. Define contract ABI (only the function you need is enough)
 const abi = parseAbi([
   'function updateBaseBoxCooldown(uint32 _boxCooldown) external',
+  'function setSigner(address _signer) external'
 ])
 
 // 4. Call the contract
 async function main() {
+  // const txHash = await client.writeContract({
+  //   address: '0x83514843b0A11398e98e99873908c1d6f1C1CaeA', // replace with your deployed contract
+  //   abi,
+  //   functionName: 'updateBaseBoxCooldown',
+  //   args: [60], // <-- pass your uint32 value here
+  // })
+
   const txHash = await client.writeContract({
     address: '0x83514843b0A11398e98e99873908c1d6f1C1CaeA', // replace with your deployed contract
     abi,
-    functionName: 'updateBaseBoxCooldown',
-    args: [60], // <-- pass your uint32 value here
+    functionName: 'setSigner',
+    // args: [process.env.SIGNER as Address], // <-- pass your uint32 value here
+    args: ['0x0000000000000000000000000000000000000000']
   })
 
   console.log('Transaction hash:', txHash)
