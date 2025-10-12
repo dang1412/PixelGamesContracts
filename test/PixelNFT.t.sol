@@ -23,11 +23,24 @@ contract PixelNFTTest is Test {
     function test_Mint() public {
         vm.deal(user, 1 ether);
         vm.prank(user);
-        pixelNFT.mint{value: 0.05 ether}(0, 0, 1, 1);
+        pixelNFT.mintArea{value: 0.05 ether}(0, 0, 1, 1);
         assertEq(pixelNFT.ownerOf(0), user);
 
         // check user balance
         assertEq(user.balance, 1 ether - 0.05 ether);   
+    }
+
+    function test_GetPixels() public {
+        vm.deal(user, 1 ether);
+        vm.prank(user);
+        pixelNFT.mintArea{value: 0.2 ether}(50, 50, 2, 2);
+
+        (uint16[] memory tokens, address[] memory owners, PixelNFT.TokenSizes[] memory sizes) = pixelNFT.getPixels();
+        assertEq(tokens.length, 1);
+        assertEq(tokens[0], 5050);
+        assertEq(owners[0], user);
+        assertEq(sizes[0].w, 2);
+        assertEq(sizes[0].h, 2);
     }
 
     function test_AfterMint() public {
@@ -35,9 +48,9 @@ contract PixelNFTTest is Test {
         vm.deal(user2, 0.5 ether);
 
         vm.prank(user);
-        pixelNFT.mint{value: 0.45 ether}(49, 49, 3, 3);
+        pixelNFT.mintArea{value: 0.45 ether}(49, 49, 3, 3);
         vm.prank(user2);
-        pixelNFT.mint{value: 0.2 ether}(30, 30, 2, 2);
+        pixelNFT.mintArea{value: 0.2 ether}(30, 30, 2, 2);
 
         assertEq(pixelNFT.ownerOf(4949), user);
 
@@ -65,16 +78,16 @@ contract PixelNFTTest is Test {
         vm.deal(user2, 0.5 ether);
 
         vm.prank(user);
-        pixelNFT.mint{value: 0.45 ether}(49, 49, 3, 3);
+        pixelNFT.mintArea{value: 0.45 ether}(49, 49, 3, 3);
         vm.prank(user2);
         vm.expectRevert(bytes("Pixel already owned"));
-        pixelNFT.mint{value: 0.2 ether}(50, 50, 2, 2);
+        pixelNFT.mintArea{value: 0.2 ether}(50, 50, 2, 2);
     }
 
     function test_PixelBelongsToToken() public {
         vm.deal(user, 1 ether);
         vm.prank(user);
-        pixelNFT.mint{value: 0.2 ether}(50, 50, 2, 2);
+        pixelNFT.mintArea{value: 0.2 ether}(50, 50, 2, 2);
 
         // check pixel belongs to token
         assertEq(pixelNFT.pixelBelongsToToken(1), 0);
@@ -88,7 +101,7 @@ contract PixelNFTTest is Test {
     function test_IsAreaOwned() public {
         vm.deal(user, 1 ether);
         vm.prank(user);
-        pixelNFT.mint{value: 0.2 ether}(50, 50, 2, 2);
+        pixelNFT.mintArea{value: 0.2 ether}(50, 50, 2, 2);
 
         assertEq(pixelNFT.isAreaOwned(user, 50, 50, 2, 2), true);
         assertEq(pixelNFT.isAreaOwned(user, 50, 50, 2, 1), true);

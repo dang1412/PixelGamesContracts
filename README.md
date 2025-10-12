@@ -92,6 +92,14 @@ forge script script/PixelGiftWithToken.s.sol:Deploy \
   -vvvv \
   --etherscan-api-key $ETHERSCAN_API_KEY
 
+# deploy PixelNFT
+forge script script/PixelNFT.s.sol:Deploy \
+  --rpc-url $BASE_SEPOLIA_URL \
+  --private-key $TESTNET_OWNER_PK \
+  --broadcast \
+  -vvvv \
+  --etherscan-api-key $ETHERSCAN_API_KEY
+
 # Verify after deployed
 
 # Token address: 0xAD645091Ac62A9DF5A3a4Fa6046B451c49209C76
@@ -101,11 +109,21 @@ forge script script/PixelGiftWithToken.s.sol:Deploy \
 # Token address: 0x29994B9CfF1BF05b527a206407c29aAE7525D5A0
 # Gift address: 0x93f8ab400B201B062eCb794E49d20b643F3D391E
 
+# 2025/10/8
+# Pixel NFT: 0xAAED62b0577D425C8000B627d47E0F9FD2697947
+
+# 2025/10/9
+# Pixel NFT: 0x8530792350A65c929c0109d506Cf53C81c1b65E4
+
 forge verify-contract 0x29994B9CfF1BF05b527a206407c29aAE7525D5A0 src/PixelToken.sol:PixelToken \
   -e $ETHERSCAN_API_KEY \
   -r $BASE_SEPOLIA_URL
 
 forge verify-contract 0x93f8ab400B201B062eCb794E49d20b643F3D391E src/PixelGift.sol:PixelGift \
+  -e $ETHERSCAN_API_KEY \
+  -r $BASE_SEPOLIA_URL
+
+forge verify-contract 0x8530792350A65c929c0109d506Cf53C81c1b65E4 src/PixelNFT.sol:PixelNFT \
   -e $ETHERSCAN_API_KEY \
   -r $BASE_SEPOLIA_URL
 

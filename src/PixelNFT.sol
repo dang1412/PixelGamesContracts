@@ -35,7 +35,7 @@ contract PixelNFT is ERC721Enumerable, Ownable {
 
     mapping (uint16 => TokenSizes) public tokenIdToSizes;
 
-    function mint(uint8 x, uint8 y, uint8 w, uint8 h) external payable {
+    function mintArea(uint8 x, uint8 y, uint8 w, uint8 h) external payable {
         uint16 amount = w * h;
         require(amount > 0, "Mint number must be positive");
         require(msg.value >= nativePrice * amount, "Not pay enough money");
@@ -55,18 +55,20 @@ contract PixelNFT is ERC721Enumerable, Ownable {
         _safeMint(msg.sender, token);
     }
 
-    function getPixels() external view returns (uint16[] memory, TokenSizes[] memory) {
+    function getPixels() external view returns (uint16[] memory, address[] memory, TokenSizes[] memory) {
         uint256 balance = totalSupply();
         uint16[] memory tokens = new uint16[](balance);
+        address[] memory owners = new address[](balance);
         TokenSizes[] memory sizes = new TokenSizes[](balance);
 
         for (uint256 i = 0; i < balance; i++) {
             uint16 tokenId = uint16(tokenByIndex(i));
             tokens[i] = tokenId;
             sizes[i] = tokenIdToSizes[tokenId];
+            owners[i] = ownerOf(tokenId);
         }
 
-        return (tokens, sizes);
+        return (tokens, owners, sizes);
     }
 
     function getUserPixels(address user) external view returns (uint16[] memory, TokenSizes[] memory) {
@@ -100,5 +102,9 @@ contract PixelNFT is ERC721Enumerable, Ownable {
         }
 
         return true;
+    }
+
+    function withdraw() external onlyOwner {
+        payable(owner()).transfer(address(this).balance);
     }
 }
