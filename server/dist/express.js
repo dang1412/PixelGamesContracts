@@ -12,7 +12,7 @@ const port = 8080;
 app.use(express_1.default.json());
 // Allow frontend (localhost:3000) to access backend
 app.use((0, cors_1.default)({
-    origin: "http://localhost:3000", // or "*" for all
+    origin: ['https://pixelonbase.com', 'http://localhost:3000'], // or "*" for all
     methods: ["GET", "POST"], // allowed methods
     //   credentials: true                // if you need cookies/auth headers
 }));

@@ -11,7 +11,7 @@ app.use(express.json());
 
 // Allow frontend (localhost:3000) to access backend
 app.use(cors({
-  origin: "http://localhost:3000", // or "*" for all
+  origin: ['https://pixelonbase.com', 'http://localhost:3000'], // or "*" for all
   methods: ["GET", "POST"],        // allowed methods
 //   credentials: true                // if you need cookies/auth headers
 }));
