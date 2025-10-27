@@ -2,7 +2,8 @@ import { parseAbiItem, PublicClient } from 'viem'
 import { WebSocket } from 'ws'
 
 import { GiftContractAddress } from '../constant'
-import { BoxClaimedArgs, encodeBoxClaimedEvents } from '../utils/encode'
+import { BoxClaimedArgs } from './types'
+import { encodeBoxClaimedEvents } from './encodeClaimBox'
 
 // Event ABI (ví dụ: BoxClaimed)
 const BoxClaimEventAbi = [

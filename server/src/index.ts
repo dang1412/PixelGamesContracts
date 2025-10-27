@@ -3,7 +3,7 @@ import { createPublicClient, webSocket, parseAbiItem, PublicClient } from 'viem'
 import { baseSepolia } from 'viem/chains'
 
 import { IncomingMessage } from 'http'
-import { watchClaimBox } from './websocket/watchClaimBox'
+import { watchClaimBox, watchEventMessage } from './websocket'
 
 function getClientIp(req: IncomingMessage, ws: WebSocket): string {
   const forwardedFor = req.headers['x-forwarded-for'];
@@ -70,5 +70,8 @@ wss.on('connection', (ws, req) => {
 
 // claimBox event
 watchClaimBox(client as PublicClient, sockets)
+
+// message event
+watchEventMessage(client as PublicClient, accountToSockets)
 
 console.log('✅ WebSocket server running on ws://localhost:8080')
