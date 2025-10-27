@@ -139,15 +139,29 @@ forge script script/PixelGiftWithToken.s.sol:Deploy \
   -vvvv \
   --etherscan-api-key $ETHERSCAN_API_KEY
 
+forge script script/EventMessage.s.sol:Deploy \
+  --rpc-url $BASE_MAINNET_URL \
+  --private-key $MAINNET_OWNER_PK \
+  --broadcast \
+  -vvvv \
+  --etherscan-api-key $ETHERSCAN_API_KEY
+
 # 2025/09/19
 # Token address: 0xaE6F09Fb34Ab7cfc04b31e2fFfbC6d796a2D5126
 # Gift address: 0x83514843b0A11398e98e99873908c1d6f1C1CaeA
+
+# 2025/10/27
+# EventMessage address: 0xE3ea4Bc88C8F936D94618db4daF401fA20Cf74e4
 
 forge verify-contract 0xaE6F09Fb34Ab7cfc04b31e2fFfbC6d796a2D5126 src/PixelToken.sol:PixelToken \
   -e $ETHERSCAN_API_KEY \
   -r $BASE_MAINNET_URL
 
 forge verify-contract 0x83514843b0A11398e98e99873908c1d6f1C1CaeA src/PixelGift.sol:PixelGift \
+  -e $ETHERSCAN_API_KEY \
+  -r $BASE_MAINNET_URL
+
+forge verify-contract 0xE3ea4Bc88C8F936D94618db4daF401fA20Cf74e4 src/EventMessage.sol:EventMessage \
   -e $ETHERSCAN_API_KEY \
   -r $BASE_MAINNET_URL
 ```
