@@ -3,6 +3,7 @@ import { WebSocketServer } from 'ws';
 import { CustomWebSocket, ClientMessage, ChannelPayloadMap } from './types'; // Import từ types.ts
 import { broadcast } from './broadcaster'; // Import hàm broadcast
 import { broadcastClaimBox } from './broadcastClaimBox'; // Import bộ mô phỏng
+import { broadcastEventMessage } from './broadcastEventMessage';
 
 const PORT = 8080;
 const wss = new WebSocketServer({ port: PORT }) as WebSocketServer;
@@ -51,3 +52,4 @@ wss.on('connection', (_ws) => {
 // --- KHỞI ĐỘNG CÁC DỊCH VỤ ---
 // Chỉ cần gọi hàm này một lần và truyền `wss` vào
 broadcastClaimBox(wss);
+broadcastEventMessage(wss);
