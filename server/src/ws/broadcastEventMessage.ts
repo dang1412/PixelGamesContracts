@@ -11,7 +11,6 @@ const SendMessageEventAbi = [
 ]
 
 /**
- * Khởi động bộ mô phỏng dữ liệu.
  * @param wss - Đối tượng WebSocketServer
  */
 export function broadcastEventMessage(wss: WebSocketServer): void {

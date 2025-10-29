@@ -8,6 +8,7 @@ export interface ChannelPayloadMap {
   'global-chat': { user: string; text: string; messageId: string };
   'admin-notifications': { type: 'error' | 'info'; message: string };
   'box-claimed': BoxClaimedArgs[];
+  [key: `message-to-${string}`]: { from: string, content: string};
 }
 
 // Helper type để lấy tên các channel
@@ -17,7 +18,8 @@ export type KnownChannel = keyof ChannelPayloadMap;
 export type ClientMessage =
   | { action: 'subscribe'; channel: string }
   | { action: 'unsubscribe'; channel: string }
-  | { action: 'chat_message'; payload: { user?: string; text: string } };
+  | { action: 'chat_message'; payload: { user?: string; text: string } }
+  | { action: 'send_message'; payload: { from: string; to: string; content: string } }
 
 // Tin nhắn server GỬI XUỐNG
 export interface ServerMessage<K extends KnownChannel> {

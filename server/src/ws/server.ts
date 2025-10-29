@@ -39,6 +39,17 @@ wss.on('connection', (_ws) => {
           // Vẫn gọi hàm broadcast như cũ, truyền wss vào
           broadcast(wss, 'global-chat', chatPayload);
           break;
+
+        case 'send_message':
+          const { from, to, content } = message.payload
+          if (to) {
+            const personalPayload: ChannelPayloadMap[`message-to-${string}`] = {
+              from,
+              content,
+            };
+            broadcast(wss, `message-to-${to}`, personalPayload);
+            console.log(`Sent personal message: ${from}, ${to}, ${content}`);
+          }
       }
     } catch (error) {
       console.error('Failed to parse message or invalid format:', error);

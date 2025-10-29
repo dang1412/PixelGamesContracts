@@ -11,7 +11,6 @@ const BoxClaimEventAbi = [
 ]
 
 /**
- * Khởi động bộ mô phỏng dữ liệu.
  * @param wss - Đối tượng WebSocketServer
  */
 export function broadcastClaimBox(wss: WebSocketServer): void {
