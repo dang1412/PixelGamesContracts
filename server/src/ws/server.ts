@@ -48,7 +48,7 @@ wss.on('connection', (_ws) => {
               content,
             };
             broadcast(wss, `message-to-${to}`, personalPayload);
-            console.log(`Sent personal message: ${from}, ${to}, ${content}`);
+            console.log(`Sent personal message: ${from}, ${to}, ${content.substring(0, 100)}...`);
           }
       }
     } catch (error) {
