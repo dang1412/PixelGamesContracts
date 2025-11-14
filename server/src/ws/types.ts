@@ -1,5 +1,6 @@
 // src/types.ts
-import { WebSocket } from 'ws';
+import { WebSocket } from 'ws'
+import { BombGameMsg, BombGameMsgResponse } from './bomb/bombTypes'
 
 // "Bản đồ" các channel và payload tương ứng
 export interface ChannelPayloadMap {
@@ -9,10 +10,11 @@ export interface ChannelPayloadMap {
   'admin-notifications': { type: 'error' | 'info'; message: string };
   'box-claimed': BoxClaimedArgs[];
   [key: `message-to-${string}`]: { from: string, content: string};
+  'bomb-game': BombGameMsgResponse;
 }
 
 // Helper type để lấy tên các channel
-export type KnownChannel = keyof ChannelPayloadMap;
+export type KnownChannel = keyof ChannelPayloadMap
 
 // Tin nhắn client GỬI LÊN
 export type ClientMessage =
@@ -20,16 +22,17 @@ export type ClientMessage =
   | { action: 'unsubscribe'; channel: string }
   | { action: 'chat_message'; payload: { user?: string; text: string } }
   | { action: 'send_message'; payload: { from: string; to: string; content: string } }
+  | { action: 'bomb_game'; msg: BombGameMsg }
 
 // Tin nhắn server GỬI XUỐNG
 export interface ServerMessage<K extends KnownChannel> {
-  channel: K;
-  data: ChannelPayloadMap[K];
+  channel: K
+  data: ChannelPayloadMap[K]
 }
 
 // Mở rộng WebSocket gốc
 export interface CustomWebSocket extends WebSocket {
-  subscriptions: Set<string>;
+  subscriptions: Set<string>
 }
 
 export interface BoxClaimedArgs {

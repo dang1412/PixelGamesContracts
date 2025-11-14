@@ -1,0 +1,86 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ActionType {
+  PLACE_BOMB  @map("place_bomb")
+  DEFUSE_BOMB @map("defuse_bomb")
+  BUY_BOMB    @map("buy_bomb")
+}
+
+model Game {
+  id             Int      @id @default(autoincrement())
+  host           String
+  originalGameId Int?     @map("original_game_id")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  clients GameClient[]
+  actions GameAction[]
+  scores  GameScore[]
+
+  originalGame Game?  @relation("GameClone", fields: [originalGameId], references: [id])
+  clonedGames  Game[] @relation("GameClone")
+
+  @@map("games")
+}
+
+model GameClient {
+  id              BigInt    @id @default(autoincrement())
+  gameId          Int       @map("game_id")
+  client          String    // wallet address / client id / socket id
+  playerId        Int?      @map("player_id") // game numeric playerId from messages
+  name            String?   // optional display name
+  firstConnectAt  DateTime? @map("first_connect_at") @db.Timestamptz
+  lastConnectAt   DateTime? @map("last_connect_at") @db.Timestamptz
+  joinedAt        DateTime? @map("joined_at") @db.Timestamptz
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  game Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  @@unique([gameId, client])
+  @@index([gameId, client], name: "idx_game_clients_game_client")
+  @@map("game_clients")
+}
+
+model GameAction {
+  id         BigInt   @id @default(autoincrement())
+  gameId     Int        @map("game_id")
+  round      Int
+  playerId   Int?       @map("player_id") // numeric player id from messages
+  actionType ActionType @map("action_type")
+  payload    Json?      // full original payload for extensibility
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  game Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  @@index([gameId, round], name: "idx_game_actions_game_round")
+  @@index([gameId, playerId], name: "idx_game_actions_game_player")
+  @@index([gameId, actionType], name: "idx_game_actions_game_actiontype")
+  @@map("game_actions")
+}
+
+model GameScore {
+  id        BigInt   @id @default(autoincrement())
+  gameId    Int      @map("game_id")
+  round     Int
+  playerId  Int      @map("player_id")
+  score     Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  game Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  @@unique([gameId, round, playerId])
+  @@index([gameId, round], name: "idx_game_scores_game_round")
+  @@index([gameId, playerId], name: "idx_game_scores_game_player")
+  @@map("game_scores")
+}

@@ -33,3 +33,19 @@ export function broadcast<K extends KnownChannel>(
     }
   })
 }
+
+export function broadcastSingle<K extends KnownChannel>(
+  ws: WebSocket,
+  channel: K,
+  data: ChannelPayloadMap[K]
+): void {
+  const message: ServerMessage<K> = {
+    channel: channel,
+    data: data,
+  }
+  const messageString = JSON.stringify(message)
+
+  if (ws.readyState === WebSocket.OPEN) {
+    ws.send(messageString)
+  }
+}
