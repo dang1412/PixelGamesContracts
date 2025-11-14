@@ -1,10 +1,12 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 // src/server.ts
+require("dotenv/config");
 const ws_1 = require("ws");
 const broadcaster_1 = require("./broadcaster"); // Import hàm broadcast
 const broadcastClaimBox_1 = require("./broadcastClaimBox"); // Import bộ mô phỏng
 const broadcastEventMessage_1 = require("./broadcastEventMessage");
+const funcs_1 = require("./bomb/funcs");
 const PORT = 8080;
 const wss = new ws_1.WebSocketServer({ port: PORT });
 console.log(`WebSocket server running on port ${PORT}...`);
@@ -43,6 +45,10 @@ wss.on('connection', (_ws) => {
                         (0, broadcaster_1.broadcast)(wss, `message-to-${to}`, personalPayload);
                         console.log(`Sent personal message: ${from}, ${to}, ${content.substring(0, 100)}...`);
                     }
+                    break;
+                case 'bomb_game':
+                    (0, funcs_1.handleBombGameMsg)(ws, message.msg);
+                    break;
             }
         }
         catch (error) {

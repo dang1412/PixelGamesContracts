@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.broadcast = broadcast;
+exports.broadcastSingle = broadcastSingle;
 // src/broadcaster.ts
 const ws_1 = require("ws");
 /**
@@ -22,4 +23,14 @@ channel, data) {
             client.send(messageString);
         }
     });
+}
+function broadcastSingle(ws, channel, data) {
+    const message = {
+        channel: channel,
+        data: data,
+    };
+    const messageString = JSON.stringify(message);
+    if (ws.readyState === ws_1.WebSocket.OPEN) {
+        ws.send(messageString);
+    }
 }

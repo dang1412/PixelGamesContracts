@@ -1,0 +1,118 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.handleBombGameMsg = handleBombGameMsg;
+const client_1 = require("@prisma/client");
+const broadcaster_1 = require("../broadcaster");
+const prisma = new client_1.PrismaClient();
+async function handleBombGameCreate(payload) {
+    const { host, originalGameId } = payload;
+    const game = await prisma.game.create({
+        data: {
+            host,
+            originalGameId,
+        },
+    });
+    return game.id;
+}
+async function handleBombGameMsg(ws, msg) {
+    console.log('Received bomb game msg:', msg);
+    if (msg.type === 'create_game') {
+        const gameId = await handleBombGameCreate(msg.payload);
+        (0, broadcaster_1.broadcastSingle)(ws, 'bomb-game', { type: 'game_created', gameId });
+        return gameId;
+    }
+    if (msg.type === 'connect') {
+        const { client, gameId } = msg.payload;
+        // update or create a game client
+        const gameClient = await prisma.gameClient.upsert({
+            where: {
+                gameId_client: {
+                    gameId,
+                    client,
+                },
+            },
+            update: {
+                lastConnectAt: new Date(),
+            },
+            create: {
+                gameId,
+                client,
+                firstConnectAt: new Date(),
+            },
+        });
+        return gameClient;
+    }
+    if (msg.type === 'join') {
+        const { client, gameId, playerId } = msg.payload;
+        // link the game client to the player
+        const gameClient = await prisma.gameClient.updateMany({
+            where: {
+                gameId,
+                client,
+            },
+            data: {
+                playerId,
+                joinedAt: new Date(),
+            },
+        });
+        return gameClient;
+    }
+    if (msg.type === 'place_bomb') {
+        const { gameId, round, playerId, pos, bombType } = msg.payload;
+        const placeBomb = await prisma.gameAction.create({
+            data: {
+                gameId,
+                round,
+                playerId,
+                actionType: client_1.ActionType.PLACE_BOMB,
+                payload: {
+                    pos, bombType,
+                },
+            },
+        });
+        return placeBomb;
+    }
+    if (msg.type === 'defuse_bomb') {
+        const { gameId, round, playerId, pos } = msg.payload;
+        const defuseBomb = await prisma.gameAction.create({
+            data: {
+                gameId,
+                round,
+                playerId,
+                actionType: client_1.ActionType.DEFUSE_BOMB,
+                payload: {
+                    pos,
+                },
+            },
+        });
+        return defuseBomb;
+    }
+    if (msg.type === 'buy_bomb') {
+        const { gameId, playerId, bombType } = msg.payload;
+        const buyBomb = await prisma.gameAction.create({
+            data: {
+                gameId,
+                round: 0, // round is not applicable for buy_bomb
+                playerId,
+                actionType: client_1.ActionType.BUY_BOMB,
+                payload: {
+                    bombType,
+                },
+            },
+        });
+        return buyBomb;
+    }
+    if (msg.type === 'scores') {
+        const { gameId, round, players } = msg.payload;
+        const scoreRecords = await Promise.all(players.map(({ playerId, score }) => prisma.gameScore.create({
+            data: {
+                gameId,
+                round,
+                playerId,
+                score
+            },
+        })));
+        return scoreRecords;
+    }
+    return null;
+}
