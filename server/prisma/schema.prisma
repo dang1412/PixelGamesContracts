@@ -82,5 +82,6 @@ model GameScore {
   @@unique([gameId, round, playerId])
   @@index([gameId, round], name: "idx_game_scores_game_round")
   @@index([gameId, playerId], name: "idx_game_scores_game_player")
+  @@index([round, score(sort: Desc)], name: "idx_game_scores_round_score")
   @@map("game_scores")
 }
