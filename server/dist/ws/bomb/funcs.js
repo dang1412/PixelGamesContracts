@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.handleBombGameMsg = handleBombGameMsg;
 const client_1 = require("@prisma/client");
 const broadcaster_1 = require("../broadcaster");
+const getRank_1 = require("./getRank");
 const prisma = new client_1.PrismaClient();
 async function handleBombGameCreate(payload) {
     const { host, originalGameId } = payload;
@@ -43,7 +44,7 @@ async function handleBombGameMsg(ws, msg) {
         return gameClient;
     }
     if (msg.type === 'join') {
-        const { client, gameId, playerId } = msg.payload;
+        const { client, gameId, playerId, name } = msg.payload;
         // link the game client to the player
         const gameClient = await prisma.gameClient.updateMany({
             where: {
@@ -52,6 +53,7 @@ async function handleBombGameMsg(ws, msg) {
             },
             data: {
                 playerId,
+                name,
                 joinedAt: new Date(),
             },
         });
@@ -113,6 +115,18 @@ async function handleBombGameMsg(ws, msg) {
             },
         })));
         return scoreRecords;
+    }
+    if (msg.type === 'get_top_rank') {
+        const { round } = msg.payload;
+        const players = await (0, getRank_1.getTopRanks)(round);
+        (0, broadcaster_1.broadcastSingle)(ws, 'bomb-game', { type: 'top_rank', players });
+    }
+    if (msg.type === 'get_high_score') {
+        const { client, round } = msg.payload;
+        const highScore = await (0, getRank_1.getPlayerRoundHighScore)(client, round);
+        if (highScore) {
+            (0, broadcaster_1.broadcastSingle)(ws, 'bomb-game', { type: 'high_score', score: highScore });
+        }
     }
     return null;
 }

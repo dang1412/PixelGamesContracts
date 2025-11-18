@@ -1,6 +1,7 @@
 // src/server.ts
 import 'dotenv/config'
 import { WebSocketServer } from 'ws'
+
 import { CustomWebSocket, ClientMessage, ChannelPayloadMap } from './types' // Import từ types.ts
 import { broadcast } from './broadcaster' // Import hàm broadcast
 import { broadcastClaimBox } from './broadcastClaimBox' // Import bộ mô phỏng
@@ -11,6 +12,11 @@ const PORT = 8080
 const wss = new WebSocketServer({ port: PORT }) as WebSocketServer
 
 console.log(`WebSocket server running on port ${PORT}...`)
+
+function extractNameFromMessageChannel(channel: string): string | null {
+  const match = channel.match(/^message-to-(.+)$/);
+  return match ? match[1] : null;
+}
 
 wss.on('connection', (_ws) => {
   console.log('Client connected')
@@ -23,6 +29,11 @@ wss.on('connection', (_ws) => {
 
       switch (message.action) {
         case 'subscribe':
+          const name = extractNameFromMessageChannel(message.channel)
+          if (name) {
+            // TODO check and only allow if correct name
+            ws.name = name
+          }
           ws.subscriptions.add(message.channel)
           console.log(`Client subscribed to: ${message.channel}`)
           break
@@ -62,7 +73,7 @@ wss.on('connection', (_ws) => {
     }
   })
 
-  ws.on('close', () => console.log('Client disconnected'))
+  ws.on('close', () => console.log('Client disconnected', ws.name))
   ws.on('error', (error) => console.error('WebSocket error:', error))
 })
 

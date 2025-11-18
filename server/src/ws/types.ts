@@ -33,6 +33,7 @@ export interface ServerMessage<K extends KnownChannel> {
 // Mở rộng WebSocket gốc
 export interface CustomWebSocket extends WebSocket {
   subscriptions: Set<string>
+  name: string
 }
 
 export interface BoxClaimedArgs {

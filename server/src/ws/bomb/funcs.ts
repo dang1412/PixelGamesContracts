@@ -3,6 +3,7 @@ import { WebSocket } from 'ws'
 
 import { broadcastSingle } from '../broadcaster'
 import { BombGameCreatePayload, BombGameMsg } from './bombTypes'
+import { getPlayerRoundHighScore, getTopRanks } from './getRank'
 
 const prisma = new PrismaClient()
 
@@ -51,7 +52,7 @@ export async function handleBombGameMsg(ws: WebSocket, msg: BombGameMsg) {
   }
 
   if (msg.type === 'join') {
-    const { client, gameId, playerId } = msg.payload
+    const { client, gameId, playerId, name } = msg.payload
 
     // link the game client to the player
     const gameClient = await prisma.gameClient.updateMany({
@@ -61,6 +62,7 @@ export async function handleBombGameMsg(ws: WebSocket, msg: BombGameMsg) {
       },
       data: {
         playerId,
+        name,
         joinedAt: new Date(),
       },
     })
@@ -137,6 +139,22 @@ export async function handleBombGameMsg(ws: WebSocket, msg: BombGameMsg) {
     ))
 
     return scoreRecords
+  }
+
+  if (msg.type === 'get_top_rank') {
+    const { round } = msg.payload
+    const players = await getTopRanks(round)
+
+    broadcastSingle(ws, 'bomb-game', { type: 'top_rank', players })
+  }
+
+  if (msg.type === 'get_high_score') {
+    const { client, round } = msg.payload
+    const highScore = await getPlayerRoundHighScore(client, round)
+
+    if (highScore) {
+      broadcastSingle(ws, 'bomb-game', { type: 'high_score', score: highScore })
+    }
   }
 
   return null

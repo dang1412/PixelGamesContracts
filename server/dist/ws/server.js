@@ -10,6 +10,10 @@ const funcs_1 = require("./bomb/funcs");
 const PORT = 8080;
 const wss = new ws_1.WebSocketServer({ port: PORT });
 console.log(`WebSocket server running on port ${PORT}...`);
+function extractNameFromMessageChannel(channel) {
+    const match = channel.match(/^message-to-(.+)$/);
+    return match ? match[1] : null;
+}
 wss.on('connection', (_ws) => {
     console.log('Client connected');
     const ws = _ws;
@@ -19,6 +23,11 @@ wss.on('connection', (_ws) => {
             const message = JSON.parse(messageAsString);
             switch (message.action) {
                 case 'subscribe':
+                    const name = extractNameFromMessageChannel(message.channel);
+                    if (name) {
+                        // TODO check and only allow if correct name
+                        ws.name = name;
+                    }
                     ws.subscriptions.add(message.channel);
                     console.log(`Client subscribed to: ${message.channel}`);
                     break;
@@ -55,7 +64,7 @@ wss.on('connection', (_ws) => {
             console.error('Failed to parse message or invalid format:', error);
         }
     });
-    ws.on('close', () => console.log('Client disconnected'));
+    ws.on('close', () => console.log('Client disconnected', ws.name));
     ws.on('error', (error) => console.error('WebSocket error:', error));
 });
 // --- KHỞI ĐỘNG CÁC DỊCH VỤ ---
