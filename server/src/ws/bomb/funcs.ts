@@ -107,7 +107,7 @@ export async function handleBombGameMsg(ws: WebSocket, msg: BombGameMsg) {
   }
 
   if (msg.type === 'buy_bomb') {
-    const { gameId, playerId, bombType } = msg.payload
+    const { gameId, playerId, bombType, quantity } = msg.payload
 
     const buyBomb = await prisma.gameAction.create({
       data: {
@@ -117,6 +117,7 @@ export async function handleBombGameMsg(ws: WebSocket, msg: BombGameMsg) {
         actionType: ActionType.BUY_BOMB,
         payload: {
           bombType,
+          quantity,
         },
       },
     })
