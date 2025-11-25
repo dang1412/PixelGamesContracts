@@ -1,11 +1,10 @@
-import { ActionType, PrismaClient } from '@prisma/client'
+import { ActionType } from '@prisma/client'
 import { WebSocket } from 'ws'
 
+import { prisma } from '../../lib/prisma'
 import { broadcastSingle } from '../broadcaster'
 import { BombGameCreatePayload, BombGameMsg } from './bombTypes'
 import { getPlayerRoundHighScore, getTopRanks } from './getRank'
-
-const prisma = new PrismaClient()
 
 async function handleBombGameCreate(payload: BombGameCreatePayload) {
   const { host, originalGameId } = payload
