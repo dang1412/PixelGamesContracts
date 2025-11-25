@@ -87,14 +87,17 @@ model GameScore {
 }
 
 model Client {
-  id          BigInt   @id @default(autoincrement())
-  wsname      String   @unique
-  walletAddr  String   @map("wallet_addr")
-  browserInfo String?  @map("browser_info")
-  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+  id           BigInt   @id @default(autoincrement())
+  wsname       String   @unique
+  walletAddr   String   @map("wallet_addr")
+  browserInfo  String?  @map("browser_info")
+  referencedBy BigInt?  @map("referenced_by")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
 
-  gameClients GameClient[]
+  gameClients    GameClient[]
+  referrer       Client?  @relation("ClientReferral", fields: [referencedBy], references: [id])
+  referredClients Client[] @relation("ClientReferral")
 
   @@index([walletAddr], name: "idx_clients_wallet")
   @@map("clients")
