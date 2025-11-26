@@ -1,7 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = {
+require("dotenv/config");
+const config_1 = require("prisma/config");
+exports.default = (0, config_1.defineConfig)({
     datasource: {
-        databaseUrl: process.env.DATABASE_URL,
+        url: (0, config_1.env)('DATABASE_URL') || '',
     },
-};
+});

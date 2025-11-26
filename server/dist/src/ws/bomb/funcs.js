@@ -2,9 +2,9 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.handleBombGameMsg = handleBombGameMsg;
 const client_1 = require("@prisma/client");
+const prisma_1 = require("../../lib/prisma");
 const broadcaster_1 = require("../broadcaster");
 const getRank_1 = require("./getRank");
-const prisma_1 = require("../../lib/prisma");
 async function handleBombGameCreate(payload) {
     const { host, originalGameId } = payload;
     const game = await prisma_1.prisma.game.create({
@@ -66,7 +66,7 @@ async function handleBombGameMsg(ws, msg) {
                 gameId,
                 round,
                 playerId,
-                actionType: client_1.ActionType.PLACE_BOMB,
+                actionType: client_1.ActionType.place_bomb,
                 payload: {
                     pos, bombType,
                 },
@@ -81,7 +81,7 @@ async function handleBombGameMsg(ws, msg) {
                 gameId,
                 round,
                 playerId,
-                actionType: client_1.ActionType.DEFUSE_BOMB,
+                actionType: client_1.ActionType.defuse_bomb,
                 payload: {
                     pos,
                 },
@@ -96,7 +96,7 @@ async function handleBombGameMsg(ws, msg) {
                 gameId,
                 round: 0, // round is not applicable for buy_bomb
                 playerId,
-                actionType: client_1.ActionType.BUY_BOMB,
+                actionType: client_1.ActionType.buy_bomb,
                 payload: {
                     bombType,
                     quantity,

@@ -1,10 +1,10 @@
 import { ActionType } from '@prisma/client'
-import { WebSocket } from 'ws'
 
 import { prisma } from '../../lib/prisma'
 import { broadcastSingle } from '../broadcaster'
 import { BombGameCreatePayload, BombGameMsg } from './bombTypes'
 import { getPlayerRoundHighScore, getTopRanks } from './getRank'
+import { CustomWebSocket } from '../types'
 
 async function handleBombGameCreate(payload: BombGameCreatePayload) {
   const { host, originalGameId } = payload
@@ -17,7 +17,7 @@ async function handleBombGameCreate(payload: BombGameCreatePayload) {
   return game.id
 }
 
-export async function handleBombGameMsg(ws: WebSocket, msg: BombGameMsg) {
+export async function handleBombGameMsg(ws: CustomWebSocket, msg: BombGameMsg) {
   console.log('Received bomb game msg:', msg)
   if (msg.type === 'create_game') {
     const gameId = await handleBombGameCreate(msg.payload)
@@ -77,7 +77,7 @@ export async function handleBombGameMsg(ws: WebSocket, msg: BombGameMsg) {
         gameId,
         round,
         playerId,
-        actionType: ActionType.PLACE_BOMB,
+        actionType: ActionType.place_bomb,
         payload: {
           pos, bombType,
         },
@@ -95,7 +95,7 @@ export async function handleBombGameMsg(ws: WebSocket, msg: BombGameMsg) {
         gameId,
         round,
         playerId,
-        actionType: ActionType.DEFUSE_BOMB,
+        actionType: ActionType.defuse_bomb,
         payload: {
           pos,
         },
@@ -113,7 +113,7 @@ export async function handleBombGameMsg(ws: WebSocket, msg: BombGameMsg) {
         gameId,
         round: 0, // round is not applicable for buy_bomb
         playerId,
-        actionType: ActionType.BUY_BOMB,
+        actionType: ActionType.buy_bomb,
         payload: {
           bombType,
           quantity,

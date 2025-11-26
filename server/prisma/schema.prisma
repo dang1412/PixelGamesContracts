@@ -10,9 +10,9 @@ datasource db {
 }
 
 enum ActionType {
-  PLACE_BOMB  @map("place_bomb")
-  DEFUSE_BOMB @map("defuse_bomb")
-  BUY_BOMB    @map("buy_bomb")
+  place_bomb  @map("place_bomb")
+  defuse_bomb @map("defuse_bomb")
+  buy_bomb    @map("buy_bomb")
 }
 
 model Game {

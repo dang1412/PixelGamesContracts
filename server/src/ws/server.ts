@@ -1,12 +1,14 @@
 // src/server.ts
 import 'dotenv/config'
-import { WebSocketServer } from 'ws'
+import { WebSocketServer, WebSocket } from 'ws'
+import { IncomingMessage } from 'http'
 
 import { CustomWebSocket, ClientMessage, ChannelPayloadMap } from './types' // Import từ types.ts
-import { broadcast } from './broadcaster' // Import hàm broadcast
+import { broadcast, broadcastSingle } from './broadcaster' // Import hàm broadcast
 import { broadcastClaimBox } from './broadcastClaimBox' // Import bộ mô phỏng
 import { broadcastEventMessage } from './broadcastEventMessage'
 import { handleBombGameMsg } from './bomb/funcs'
+import { createClientIfNotExists, updateClientWalletAddress } from './bomb/createClient'
 
 const PORT = 8080
 const wss = new WebSocketServer({ port: PORT }) as WebSocketServer
@@ -18,24 +20,46 @@ function extractNameFromMessageChannel(channel: string): string | null {
   return match ? match[1] : null;
 }
 
-wss.on('connection', (_ws) => {
+function getClientIp(req: IncomingMessage, ws: WebSocket): string {
+  const forwardedFor = req.headers['x-forwarded-for'];
+  const ip = Array.isArray(forwardedFor)
+    ? forwardedFor[0]
+    : forwardedFor?.split(',')[0].trim();
+
+  return ip || (ws as any)._socket.remoteAddress?.replace(/^::ffff:/, '') || 'unknown';
+}
+
+const nameToWsMap: Map<string, CustomWebSocket> = new Map();
+
+wss.on('connection', (_ws, req) => {
   console.log('Client connected')
+  const ip = getClientIp(req, _ws)
   const ws = _ws as CustomWebSocket
   ws.subscriptions = new Set<string>()
+  ws.ip = ip
 
   ws.on('message', (messageAsString: string) => {
     try {
       const message: ClientMessage = JSON.parse(messageAsString)
 
       switch (message.action) {
+        case 'signInTemp':
+          const { wsName, referer } = message
+          ws.name = wsName
+          // Create client if not exists
+          createClientIfNotExists(wsName, referer || '')
+          console.log(`Client signed in as: ${wsName}`)
+          nameToWsMap.set(wsName, ws)
+          break
         case 'subscribe':
-          const name = extractNameFromMessageChannel(message.channel)
-          if (name) {
-            // TODO check and only allow if correct name
-            ws.name = name
-          }
           ws.subscriptions.add(message.channel)
           console.log(`Client subscribed to: ${message.channel}`)
+          break
+
+        case 'walletConnected':
+          if (ws.name) {
+            updateClientWalletAddress(ws.name, message.walletAddr)
+          }
           break
 
         case 'unsubscribe':
@@ -54,13 +78,15 @@ wss.on('connection', (_ws) => {
           break
 
         case 'send_message':
-          const { from, to, content } = message.payload
-          if (to) {
+          const { to, content } = message.payload
+          const from = ws.name
+          const toWs = nameToWsMap.get(to)
+          if (from && to && toWs) {
             const personalPayload: ChannelPayloadMap[`message-to-${string}`] = {
               from,
               content,
             }
-            broadcast(wss, `message-to-${to}`, personalPayload)
+            broadcastSingle(toWs, `message-to-${to}`, personalPayload)
             console.log(`Sent personal message: ${from}, ${to}, ${content.substring(0, 100)}...`)
           }
           break
@@ -73,7 +99,12 @@ wss.on('connection', (_ws) => {
     }
   })
 
-  ws.on('close', () => console.log('Client disconnected', ws.name))
+  // disconnect handler
+  const disconnect = () => nameToWsMap.delete(ws.name)
+  ws.on('close', () => {
+    console.log('Client disconnected', ws.name)
+    disconnect()
+  })
   ws.on('error', (error) => console.error('WebSocket error:', error))
 })
 

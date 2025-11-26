@@ -18,10 +18,12 @@ export type KnownChannel = keyof ChannelPayloadMap
 
 // Tin nhắn client GỬI LÊN
 export type ClientMessage =
+  | { action: 'signInTemp'; wsName: string; referer?: string }
+  | { action: 'walletConnected'; walletAddr: string }
   | { action: 'subscribe'; channel: string }
   | { action: 'unsubscribe'; channel: string }
   | { action: 'chat_message'; payload: { user?: string; text: string } }
-  | { action: 'send_message'; payload: { from: string; to: string; content: string } }
+  | { action: 'send_message'; payload: { to: string; content: string } }
   | { action: 'bomb_game'; msg: BombGameMsg }
 
 // Tin nhắn server GỬI XUỐNG
@@ -34,6 +36,7 @@ export interface ServerMessage<K extends KnownChannel> {
 export interface CustomWebSocket extends WebSocket {
   subscriptions: Set<string>
   name: string
+  ip: string
 }
 
 export interface BoxClaimedArgs {

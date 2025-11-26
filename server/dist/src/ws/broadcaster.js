@@ -30,7 +30,7 @@ function broadcastSingle(ws, channel, data) {
         data: data,
     };
     const messageString = JSON.stringify(message);
-    if (ws.readyState === ws_1.WebSocket.OPEN) {
+    if (ws.readyState === ws_1.WebSocket.OPEN && ws.subscriptions.has(channel)) {
         ws.send(messageString);
     }
 }

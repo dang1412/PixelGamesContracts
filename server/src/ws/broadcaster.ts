@@ -35,7 +35,7 @@ export function broadcast<K extends KnownChannel>(
 }
 
 export function broadcastSingle<K extends KnownChannel>(
-  ws: WebSocket,
+  ws: CustomWebSocket,
   channel: K,
   data: ChannelPayloadMap[K]
 ): void {
@@ -45,7 +45,7 @@ export function broadcastSingle<K extends KnownChannel>(
   }
   const messageString = JSON.stringify(message)
 
-  if (ws.readyState === WebSocket.OPEN) {
+  if (ws.readyState === WebSocket.OPEN && ws.subscriptions.has(channel)) {
     ws.send(messageString)
   }
 }
