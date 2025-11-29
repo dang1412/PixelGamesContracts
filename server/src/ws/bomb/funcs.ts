@@ -157,5 +157,22 @@ export async function handleBombGameMsg(ws: CustomWebSocket, msg: BombGameMsg) {
     }
   }
 
+  if (msg.type === 'add_recorded_game') {
+    const { gameId, gameDataCid } = msg.payload
+    // store the recorded game CID to the game record
+    const game = await prisma.game.update({
+      where: {
+        id: gameId,
+      },
+      data: {
+        recordedRounds: {
+          push: gameDataCid,
+        },
+      },
+    })
+
+    return game
+  }
+
   return null
 }

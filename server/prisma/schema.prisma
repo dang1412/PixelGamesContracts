@@ -20,6 +20,7 @@ model Game {
   host           String
   originalGameId Int?     @map("original_game_id")
   createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz
+  recordedRounds String[] @map("recorded_rounds")
 
   clients GameClient[]
   actions GameAction[]
