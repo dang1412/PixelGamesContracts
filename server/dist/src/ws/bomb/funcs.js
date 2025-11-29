@@ -129,5 +129,20 @@ async function handleBombGameMsg(ws, msg) {
             (0, broadcaster_1.broadcastSingle)(ws, 'bomb-game', { type: 'high_score', score: highScore });
         }
     }
+    if (msg.type === 'add_recorded_game') {
+        const { gameId, gameDataCid } = msg.payload;
+        // store the recorded game CID to the game record
+        const game = await prisma_1.prisma.game.update({
+            where: {
+                id: gameId,
+            },
+            data: {
+                recordedRounds: {
+                    push: gameDataCid,
+                },
+            },
+        });
+        return game;
+    }
     return null;
 }

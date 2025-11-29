@@ -42,14 +42,6 @@ wss.on('connection', (_ws, req) => {
                     nameToWsMap.set(wsName, ws);
                     break;
                 case 'subscribe':
-                    // const name = extractNameFromMessageChannel(message.channel)
-                    // if (name) {
-                    //   // TODO check and only allow if correct name
-                    //   ws.name = name
-                    //   const referer = message.referer || ''
-                    //   // Create client if not exists
-                    //   createClientIfNotExists(name, referer)
-                    // }
                     ws.subscriptions.add(message.channel);
                     console.log(`Client subscribed to: ${message.channel}`);
                     break;
