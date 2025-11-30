@@ -5,6 +5,7 @@ const client_1 = require("@prisma/client");
 const prisma_1 = require("../../lib/prisma");
 const broadcaster_1 = require("../broadcaster");
 const getRank_1 = require("./getRank");
+const createClient_1 = require("./createClient");
 async function handleBombGameCreate(payload) {
     const { host, originalGameId } = payload;
     const game = await prisma_1.prisma.game.create({
@@ -24,6 +25,18 @@ async function handleBombGameMsg(ws, msg) {
     }
     if (msg.type === 'connect') {
         const { client, gameId } = msg.payload;
+        // find host from gameId
+        const game = await prisma_1.prisma.game.findUnique({
+            where: {
+                id: gameId,
+            },
+            select: { host: true },
+        });
+        if (!game)
+            return;
+        const referer = game.host !== client ? game.host : '';
+        // create new client with referer if not exists
+        await (0, createClient_1.createClientIfNotExists)(client, referer);
         // update or create a game client
         const gameClient = await prisma_1.prisma.gameClient.upsert({
             where: {

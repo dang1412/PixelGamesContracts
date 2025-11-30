@@ -46,9 +46,7 @@ wss.on('connection', (_ws, req) => {
         case 'signInTemp':
           const { wsName, referer } = message
           ws.name = wsName
-          // Create client if not exists
-          createClientIfNotExists(wsName, referer || '')
-          console.log(`Client signed in as: ${wsName}`)
+          console.log(`Client temp signed in as: ${wsName}`)
           nameToWsMap.set(wsName, ws)
           break
         case 'subscribe':

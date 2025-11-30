@@ -5,6 +5,7 @@ import { broadcastSingle } from '../broadcaster'
 import { BombGameCreatePayload, BombGameMsg } from './bombTypes'
 import { getPlayerRoundHighScore, getTopRanks } from './getRank'
 import { CustomWebSocket } from '../types'
+import { createClientIfNotExists } from './createClient'
 
 async function handleBombGameCreate(payload: BombGameCreatePayload) {
   const { host, originalGameId } = payload
@@ -28,6 +29,21 @@ export async function handleBombGameMsg(ws: CustomWebSocket, msg: BombGameMsg) {
 
   if (msg.type === 'connect') {
     const { client, gameId } = msg.payload
+
+    // find host from gameId
+    const game = await prisma.game.findUnique({
+      where: {
+        id: gameId,
+      },
+      select: { host: true },
+    })
+
+    if (!game) return
+
+    const referer = game.host !== client ? game.host : ''
+
+    // create new client with referer if not exists
+    await createClientIfNotExists(client, referer)
 
     // update or create a game client
     const gameClient = await prisma.gameClient.upsert({
