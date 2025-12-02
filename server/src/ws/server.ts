@@ -89,7 +89,9 @@ wss.on('connection', (_ws, req) => {
           }
           break
         case 'bomb_game':
-          handleBombGameMsg(ws, message.msg)
+          handleBombGameMsg(ws, message.msg).catch((err) => {
+            console.error('Error handling bomb game message:', err)
+          })
           break
       }
     } catch (error) {

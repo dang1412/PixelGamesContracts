@@ -75,7 +75,9 @@ wss.on('connection', (_ws, req) => {
                     }
                     break;
                 case 'bomb_game':
-                    (0, funcs_1.handleBombGameMsg)(ws, message.msg);
+                    (0, funcs_1.handleBombGameMsg)(ws, message.msg).catch((err) => {
+                        console.error('Error handling bomb game message:', err);
+                    });
                     break;
             }
         }
