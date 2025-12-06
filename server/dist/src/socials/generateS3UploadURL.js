@@ -11,7 +11,6 @@ const s3Client = new client_s3_1.S3Client({
         accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
         secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
     },
-    // requestChecksumCalculation: 'WHEN_REQUIRED',
 });
 async function generateS3UploadURL(fileName, fileType) {
     const bucketName = process.env.AWS_S3_BUCKET_NAME || 'bomb-game-results';
@@ -19,7 +18,6 @@ async function generateS3UploadURL(fileName, fileType) {
         Bucket: bucketName,
         Key: fileName,
         ContentType: fileType,
-        // ACL: 'public-read', // Cho phép public read nếu cần
     });
     try {
         const signedUrl = await (0, s3_request_presigner_1.getSignedUrl)(s3Client, command, { expiresIn: 3600 }); // URL hợp lệ trong 1 giờ
