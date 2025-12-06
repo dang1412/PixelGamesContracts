@@ -9,7 +9,6 @@ const s3Client = new S3Client({
     accessKeyId: process.env.AWS_ACCESS_KEY_ID || '', 
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
   },
-  // requestChecksumCalculation: 'WHEN_REQUIRED',
 })
 
 export async function generateS3UploadURL(fileName: string, fileType: string): Promise<string> {
@@ -19,7 +18,6 @@ export async function generateS3UploadURL(fileName: string, fileType: string): P
     Bucket: bucketName,
     Key: fileName,
     ContentType: fileType,
-    // ACL: 'public-read', // Cho phép public read nếu cần
   })
 
   try {

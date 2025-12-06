@@ -93,6 +93,8 @@ export async function shareBombResult(
   <!-- Additional Meta Tags -->
   <meta name="description" content="${description}">
   <meta name="theme-color" content="#FF6B6B">
+
+  <meta http-equiv="refresh" content="0;url=${replayUrl}">
   
 </head>
 <body>

@@ -43,7 +43,7 @@ app.post("/generateUploadURL", async (req: Request, res: Response) => {
   const { fileName, fileType } = req.body;
   try {
     const uploadURL = await generateS3UploadURL(fileName, fileType);
-    console.log("Generated upload URL for:", fileName, fileType, uploadURL);
+    console.log("Generated upload URL for:", fileName, fileType);
     res.json({ success: true, uploadURL });
   } catch (error) {
     res.status(500).json({ success: false, error: 'Could not generate upload URL' });
