@@ -60,8 +60,7 @@ app.get("/bombshare/:gameId", async (req, res) => {
     const roundNum = typeof round === 'string' ? parseInt(round) : 0;
     const playerIdNum = typeof playerId === 'string' ? parseInt(playerId) : 0;
     // Generate the share HTML
-    const shareHtml = await (0, bomb_1.shareBombResult)(gameIdNum, roundNum, playerIdNum, img);
-    res.send(shareHtml);
+    await (0, bomb_1.shareBombResult)(req, res, gameIdNum, roundNum, playerIdNum, img);
 });
 app.listen(port, () => {
     console.log(`Server running at http://localhost:${port}`);

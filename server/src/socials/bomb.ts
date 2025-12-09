@@ -1,3 +1,4 @@
+import { Request, Response } from "express";
 import { prisma } from '../lib/prisma'
 
 const apiUrl = 'https://api.pixelonbase.com'
@@ -47,15 +48,43 @@ async function getGamePlayerInfo(gameId: number, round: number, playerId: number
   return null;
 }
 
+const botUserAgents = [
+    'facebookexternalhit', // Facebook
+    'Twitterbot',          // Twitter
+    'ZaloBot',             // Zalo
+    'LinkedInBot',         // LinkedIn
+    'Slackbot',            // Slack
+    'Googlebot',           // Google, for SEO (Recommended)
+    'TelegramBot',         // Telegram
+    'WhatsApp',            // WhatsApp
+    'Pinterestbot',        // Pinterest
+    'Discordbot',          // Discord (Crucial for gaming communities)
+    'Applebot',            // iMessage / Apple
+    'SkypeUriPreview'      // Skype
+];
+
+// Hàm kiểm tra xem User-Agent có phải là bot không
+const isSocialMediaBot = (userAgent: string) => {
+    if (!userAgent) return false;
+    // Chuyển về chữ thường và kiểm tra xem có chứa bất kỳ chuỗi nào trong danh sách botUserAgents không
+    return botUserAgents.some(bot => userAgent.toLowerCase().includes(bot.toLowerCase()));
+};
+
 export async function shareBombResult(
+  req: Request, res: Response,
   gameId: number, round: number, playerId: number, img: string
-): Promise<string> {
+): Promise<void> {
   // use prisma to get the last round recorded hash for the gameId
   const replayHash = await getGameReplayHash(gameId);
+  const replayUrl = `${gameUrl}?replayGameId=${replayHash}`;
+  const userAgent = req.get('User-Agent') || '';
+  if (!isSocialMediaBot(userAgent)) {
+    res.redirect(replayUrl);
+    return;
+  }
+
   // player info
   const playerInfo = await getGamePlayerInfo(gameId, round, playerId);
-
-  const replayUrl = `${gameUrl}?replayGameId=${replayHash}`;
   const imageUrl = `${imageBaseUrl}/${img}`;
 
   // Sample bomb game data
@@ -64,15 +93,15 @@ export async function shareBombResult(
   const title = `🎮 ${playerName}'s Bomb Results (Round ${round})!`;
   const description = `${playerName} scored ${score} points! Play now and challenge your friends!`;
   const shareUrl = `${apiUrl}/bombshare/${gameId}?img=${img}&round=${round}&playerId=${playerId}`;
-  
-  return `<!DOCTYPE html>
+
+  const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${title}</title>
   
-  <!-- Open Graph / Facebook -->
+  <!-- Open Graph / Facebook / Discord / Telegram -->
   <meta property="og:type" content="website">
   <meta property="og:url" content="${shareUrl}">
   <meta property="og:title" content="${title}">
@@ -89,13 +118,14 @@ export async function shareBombResult(
   <meta name="twitter:description" content="${description}">
   <meta name="twitter:image" content="${imageUrl}">
   <meta name="twitter:creator" content="@pixelgame">
+  <meta name="twitter:site" content="@pixelgame">
+  <meta name="twitter:domain" content="pixelonbase.com">
   
   <!-- Additional Meta Tags -->
   <meta name="description" content="${description}">
+  <!-- Discord Embed Color -->
   <meta name="theme-color" content="#FF6B6B">
 
-  <meta http-equiv="refresh" content="0;url=${replayUrl}">
-  
 </head>
 <body>
   <h1>${title}</h1>
@@ -104,4 +134,6 @@ export async function shareBombResult(
   <a href="${replayUrl}">Click here if you're not redirected automatically</a>
 </body>
 </html>`;
+
+  res.send(html)
 }
