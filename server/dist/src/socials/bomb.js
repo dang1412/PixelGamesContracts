@@ -94,6 +94,7 @@ async function shareBombResult(req, res, gameId, round, playerId, img) {
   <title>${title}</title>
   
   <!-- Open Graph / Facebook / Discord / Telegram -->
+  <meta property="fb:app_id" content="621012744407327">
   <meta property="og:type" content="website">
   <meta property="og:url" content="${shareUrl}">
   <meta property="og:title" content="${title}">

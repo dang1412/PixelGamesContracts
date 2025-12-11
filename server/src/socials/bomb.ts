@@ -1,4 +1,5 @@
-import { Request, Response } from "express";
+import { Request, Response } from "express"
+
 import { prisma } from '../lib/prisma'
 
 const apiUrl = 'https://api.pixelonbase.com'
@@ -102,6 +103,7 @@ export async function shareBombResult(
   <title>${title}</title>
   
   <!-- Open Graph / Facebook / Discord / Telegram -->
+  <meta property="fb:app_id" content="621012744407327">
   <meta property="og:type" content="website">
   <meta property="og:url" content="${shareUrl}">
   <meta property="og:title" content="${title}">
