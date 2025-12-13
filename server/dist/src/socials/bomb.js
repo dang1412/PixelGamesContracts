@@ -71,7 +71,7 @@ const isSocialMediaBot = (userAgent) => {
 async function shareBombResult(req, res, gameId, round, playerId, img) {
     // use prisma to get the last round recorded hash for the gameId
     const replayHash = await getGameReplayHash(gameId);
-    const replayUrl = `${gameUrl}?replayGameId=${replayHash}`;
+    const replayUrl = `${gameUrl}?replayGameId=${replayHash}&round=${round}`;
     const userAgent = req.get('User-Agent') || '';
     if (!isSocialMediaBot(userAgent)) {
         res.redirect(replayUrl);
