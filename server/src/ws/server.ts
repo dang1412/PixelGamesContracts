@@ -10,7 +10,7 @@ import { broadcastEventMessage } from './broadcastEventMessage'
 import { handleBombGameMsg } from './bomb/funcs'
 import { createClientIfNotExists, updateClientWalletAddress } from './bomb/createClient'
 
-const PORT = 8080
+const PORT = 8082
 const wss = new WebSocketServer({ port: PORT }) as WebSocketServer
 
 console.log(`WebSocket server running on port ${PORT}...`)
