@@ -47,7 +47,14 @@ cd server
 npm install
 ```
 
-### 4. Run Prisma migrations
+### 4. Generate Prisma client
+
+```bash
+cd server
+npx prisma generate
+```
+
+### 5. Run Prisma migrations
 
 ```bash
 cd server
