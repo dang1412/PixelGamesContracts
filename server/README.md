@@ -3,9 +3,9 @@
 Two independent servers:
 
 - **Express** (`src/express.ts`) — HTTP REST API on port `8080`
-- **WebSocket** (`src/ws/server.ts`) — WebSocket server on port `8080`
+- **WebSocket** (`src/ws/server.ts`) — WebSocket server on port `8082`
 
-Run one at a time (both use port 8080).
+Run both simultaneously (different ports).
 
 ## Prerequisites
 
